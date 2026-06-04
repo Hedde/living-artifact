@@ -20,9 +20,12 @@ then `tools/board.sh items`. This is the truth for this tick. Note WIP per lane 
 In progress = 3, In review = 5).
 
 ### 1. Advance review → done (free up flow first)
-For each card in **In review**: check if its linked PR is **merged**.
-- Merged → run the DoD self-check; if it passes, `board.sh move <n> "Done"`, then
-  `gh issue close <n>`. Comment a one-line summary.
+For each card in **In review** (and any card **closed/Done since the last tick**): check its linked PR.
+- Merged → run the DoD self-check; if it passes, ensure the card is **Done** (`board.sh move <n>
+  "Done"`) and the issue closed (`gh issue close <n>`), then comment a one-line summary. **Note:**
+  GitHub's built-in "closed → Done" automation often fires on merge of a `Closes #<n>` PR, so the
+  card may already be Done and the issue already closed — in that case don't re-move/re-close, just
+  do the DoD self-check and post the summary so the close is acknowledged.
 - Closed without merge or human requested changes → `board.sh move <n> "In progress"` and address
   the feedback (rework).
 - Still open/awaiting human → leave it; the human owns the merge gate.

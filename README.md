@@ -102,6 +102,17 @@ Run the team (local runtime — see ADR-0004):
 (Skills register at session start, so the first time after scaffolding, restart your Claude Code
 session before running `/teamlead`.)
 
+> **The loop is session-only — restart it for every demo.** It runs only while this Claude Code
+> session is open; closing Claude stops it, and it does **not** auto-resume on reopen. To start (or
+> restart) a demo:
+> 1. Open Claude Code in this repo.
+> 2. Run `/loop 5m /teamlead` — it runs the first tick immediately, then every 5 minutes.
+> 3. Drag a card to **Ready**; the loop carries it Backlog → … → In review, you merge the PR, and the
+>    next tick marks it **Done**.
+>
+> Nothing else needs redoing: `gh` stays authenticated, the repo stays private, and all agents/process
+> live in the repo.
+
 Each tick, Morgan reconciles the board and advances work as far as the rules allow. You stay in the
 loop on **prioritising**, on any **needs-decision**, and on **merging PRs**.
 

@@ -59,3 +59,7 @@ loop on **prioritising**, on any **needs-decision**, and on **merging PRs**.
 | `docs/architecture.md`| Living architecture document.                            |
 | `docs/adr/`           | Architecture Decision Records.                           |
 | `docs/features/`      | User-facing feature documentation (part of Done).        |
+
+## Status
+
+Dit is een geslaagde test

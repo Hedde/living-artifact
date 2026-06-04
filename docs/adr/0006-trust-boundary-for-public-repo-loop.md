@@ -5,9 +5,11 @@
 
 ## Context
 
-This repository is **public** on GitHub. The autonomous teamlead loop runs **locally on the owner's
-laptop** (`/loop 5m /teamlead`, see ADR-0004) with a `gh` token scoped to repo + project + workflow,
-and with local file-write and Bash access.
+The autonomous teamlead loop runs **locally on the owner's laptop** (`/loop 5m /teamlead`, see
+ADR-0004) with a `gh` token scoped to repo + project + workflow, and with local file-write and Bash
+access. The repository is kept **private** as the primary access control (see the Decision); this
+threat model is written for the general case because the template is reusable and may be run
+**publicly**, where the full boundary below is required.
 
 Anyone can open issues, PRs, and comments on a public repo. All of that text — card titles, issue
 bodies, PR descriptions, comments — flows into the loop as context. That is a **prompt-injection**
@@ -28,8 +30,10 @@ must be *incapable* of irreversible action, rather than relying on a human to no
 We define a **trust boundary** around the loop, enforced by five defense-in-depth layers. Untrusted
 GitHub text never crosses into privileged action except through these gates:
 
-1. **Interaction limit = `collaborators_only`.** GitHub repo interaction limits are set so only
-   collaborators can open issues/PRs/comments. This shrinks who can reach the loop at all.
+1. **Private repository (primary access control).** The repo is kept **private**, so only
+   collaborators can open issues/PRs/comments at all — the strongest reduction of who can reach the
+   loop, and permanent (unlike interaction limits, which expire after ≤6 months). If the repo is
+   ever made public, set a `collaborators_only` interaction limit as the — temporary — fallback.
 2. **Ready-gate.** The loop only acts on cards the **human** has moved to **Ready** (the existing
    workflow). Untouched, freshly-filed issues are never auto-worked.
 3. **Author allowlist.** The teamlead refuses to work a card unless the issue's GitHub

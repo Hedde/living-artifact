@@ -31,6 +31,14 @@ Morgan (teamlead) polls every ~5 min ──► checks DoR ──► routes the r
 
 ## ⚠️ Security — read before you run the loop
 
+**This repository is private — on purpose.** The loop runs autonomously on a real machine and reads
+whatever text lands on the board. On a *public* repo anyone can open issues/PRs whose text is then
+fed to the agents, and **GitHub has no permanent way to block that** — interaction limits expire
+after ≤6 months. So the safe default is to keep the repo **private**, where only collaborators can
+file issues or PRs at all. The loop works fully on a private repo (your `gh` token's `repo` scope
+covers it), so **demos still run**. Everything below applies whenever you (or a fork) run this
+**publicly** — and the in-loop protections stay on regardless.
+
 This template runs an **autonomous loop on your own machine** with your `gh` token and shell/file
 access. On a **public** repo, anyone can open issues, PRs, and comments — and **all of that text is
 fed to the agents**. That is a real **prompt-injection** attack surface, and it is not hypothetical

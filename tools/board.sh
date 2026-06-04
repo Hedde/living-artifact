@@ -58,7 +58,7 @@ _items_json() {
         id
         content{
           __typename
-          ... on Issue      { number title url state labels(first:20){nodes{name}} }
+          ... on Issue      { number title url state authorAssociation author{login} labels(first:20){nodes{name}} }
           ... on PullRequest{ number title url state }
           ... on DraftIssue { title }
         }
@@ -78,6 +78,8 @@ _rows() {
         title:  .content.title,
         url:    .content.url,
         state:  .content.state,
+        author: ( .content.author.login // "unknown" ),
+        assoc:  ( .content.authorAssociation // "NONE" ),
         labels: [ .content.labels.nodes[].name ],
         status: ( [ .fieldValues.nodes[] | select(.field.name=="Status") | .name ][0] // "—" ),
         itemId: .id }'
@@ -93,7 +95,7 @@ cmd_items() {
 }
 
 cmd_ready() {
-  _rows | jq -r 'select(.status=="Ready") | "#\(.number)  \(.title)  \(if (.labels|length)>0 then "(" + (.labels|join(",")) + ")" else "" end)"'
+  _rows | jq -r 'select(.status=="Ready") | "#\(.number)  \(.title)  [author:\(.author) \(.assoc)]  \(if (.labels|length)>0 then "(" + (.labels|join(",")) + ")" else "" end)"'
 }
 
 cmd_status() {
@@ -180,6 +182,7 @@ cmd_card() {
       "  status:   \( [ .fieldValues.nodes[] | select(.field.name=="Status")   | .name ][0] // "—" )\n" +
       "  size:     \( [ .fieldValues.nodes[] | select(.field.name=="Size")     | .name ][0] // "—" )\n" +
       "  priority: \( [ .fieldValues.nodes[] | select(.field.name=="Priority") | .name ][0] // "—" )\n" +
+      "  author:   \(.content.author.login // "unknown") (\(.content.authorAssociation // "NONE"))\n" +
       "  labels:   \( [ .content.labels.nodes[].name ] | join(", ") )"'
 }
 
@@ -200,6 +203,24 @@ cmd_size() {
   echo "set #$num size = $size"
 }
 
+# Security gate (ADR-0006): is this card from a trusted author?
+# Exit 0 = trusted (safe to work); exit 1 = UNTRUSTED (do not work without human review).
+cmd_trusted() {
+  local num="$1" row assoc author ok=0 a u
+  row="$(_rows | jq -c --argjson n "$num" 'select(.number==$n)' | head -n1)"
+  [ -n "$row" ] || die "issue #$num is not on the board"
+  assoc="$(jq -r '.assoc'  <<<"$row")"
+  author="$(jq -r '.author' <<<"$row")"
+  for a in $TRUSTED_ASSOCIATIONS; do if [ "$assoc"  = "$a" ]; then ok=1; fi; done
+  for u in $TRUSTED_AUTHORS;      do if [ "$author" = "$u" ]; then ok=1; fi; done
+  if [ "$ok" = 1 ]; then
+    echo "trusted   (author:$author assoc:$assoc)"
+  else
+    echo "UNTRUSTED (author:$author assoc:$assoc) — do not work without human review (ADR-0006)"
+    return 1
+  fi
+}
+
 main() {
   local cmd="${1:-}"; shift || true
   case "$cmd" in
@@ -207,6 +228,7 @@ main() {
     items)     cmd_items ;;
     ready)     cmd_ready ;;
     card)      cmd_card "$@" ;;
+    trusted)   cmd_trusted "$@" ;;
     status)    cmd_status "$@" ;;
     move)      cmd_move "$@" ;;
     size)      cmd_size "$@" ;;
@@ -217,8 +239,9 @@ main() {
 board.sh — Living Artifact board adapter
   preflight                     check gh/jq/auth/project-scope before a tick
   items                         list all cards
-  ready                         list cards in the Ready lane
-  card <n>                      show a card's DoR fields (status/size/priority/labels)
+  ready                         list cards in the Ready lane (with author + association)
+  card <n>                      show a card's DoR fields (status/size/priority/author/labels)
+  trusted <n>                   security gate: is the card from a trusted author? (ADR-0006)
   status <n>                    print a card's lane
   move <n> "<Lane>"             move a card (validated)
   size <n> <XS|S|M|L|XL>        set a card's size estimate

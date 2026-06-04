@@ -1,5 +1,11 @@
 # living-artifact
 
+> ⚠️ **Never run `/loop` against a public repository.** On a public repo, issues, pull requests and
+> comments are **untrusted input from anyone on the internet**, and the loop feeds that text straight
+> to agents running on your machine — a prompt-injection risk with your `gh` token and shell access.
+> Keep the repository **private** whenever the loop is running. See the [Security](#security) section
+> below and [ADR-0006](docs/adr/0006-trust-boundary-for-public-repo-loop.md).
+
 A **living artifact**: a self-improving, agile AI software team that runs on a GitHub Projects
 kanban board. Named specialist agents pick work off the board, take it through a fixed status flow
 under a Definition of Ready and Definition of Done, ship it via Pull Requests, and **edit their own
@@ -28,6 +34,8 @@ Morgan (teamlead) polls every ~5 min ──► checks DoR ──► routes the r
 - **Source of truth:** [GitHub Project #4](https://github.com/users/Hedde/projects/4).
 - **Process:** `process/` (workflow, DoR, DoD, human-in-the-loop, self-improvement).
 - **Decisions:** `docs/adr/`. **Architecture:** `docs/architecture.md`.
+
+<a id="security"></a>
 
 ## ⚠️ Security — read before you run the loop
 

@@ -1,0 +1,8 @@
+# Local Claude Code runtime state (per-session, must never be committed)
+.claude/scheduled_tasks.lock
+.claude/scheduled_tasks.json
+.claude/settings.local.json
+
+# OS / editor cruft
+.DS_Store
+*.swp

@@ -44,6 +44,9 @@ Run the team (local runtime — see ADR-0004):
 /loop 5m /teamlead
 ```
 
+(Skills register at session start, so the first time after scaffolding, restart your Claude Code
+session before running `/teamlead`.)
+
 Each tick, Morgan reconciles the board and advances work as far as the rules allow. You stay in the
 loop on **prioritising**, on any **needs-decision**, and on **merging PRs**.
 

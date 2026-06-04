@@ -41,6 +41,7 @@ on top of GitHub. There is (deliberately) no application code yet — the "produ
 | Board config (IDs)   | `tools/board.env`              | Project/field/option IDs (no secrets).      |
 | Teamlead             | `.claude/skills/teamlead/`     | The poll-and-orchestrate routine (Morgan).  |
 | Specialists          | `.claude/agents/*.md`          | Domain work; self-improving identities.     |
+| Agent charter        | `process/agent-charter.md`     | Shared rules every specialist inherits (one source, no per-agent drift). New agents start from `.claude/agents/_TEMPLATE.md`. |
 | Process              | `process/*.md`                 | Workflow, DoR, DoD, HITL, self-improvement. |
 | Decisions            | `docs/adr/*.md`                | Architecture Decision Records.              |
 | Feature docs         | `docs/features/*.md`           | User-facing behaviour, written as part of DoD. |

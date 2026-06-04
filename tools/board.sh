@@ -150,22 +150,78 @@ cmd_fetch_ids() {
     }}}' -F org="$OWNER" -F num="$PROJECT_NUMBER"
 }
 
+# Diagnose the environment before a tick — the things that actually block us:
+# gh present, jq present, authenticated, and the `project` scope (board reachable).
+cmd_preflight() {
+  local ok=1
+  command -v gh >/dev/null 2>&1 && echo "✓ gh present"  || { echo "✗ gh missing"; ok=0; }
+  command -v jq >/dev/null 2>&1 && echo "✓ jq present"  || { echo "✗ jq missing"; ok=0; }
+  if gh auth status >/dev/null 2>&1; then
+    if gh api graphql -f query="query{user(login:\"$OWNER\"){projectV2(number:$PROJECT_NUMBER){id}}}" >/dev/null 2>&1; then
+      echo "✓ board reachable (project scope OK)"
+    else
+      echo "✗ cannot read project #$PROJECT_NUMBER — token likely missing the 'project' scope."
+      echo "  fix: gh auth refresh -h github.com -s project"
+      ok=0
+    fi
+  else
+    echo "✗ gh not authenticated — run: gh auth login"; ok=0
+  fi
+  [ "$ok" = 1 ] && echo "preflight: OK" || { echo "preflight: FAILED" >&2; return 1; }
+}
+
+# DoR fields for a card, in one place (no ad-hoc GraphQL needed).
+cmd_card() {
+  local num="$1"
+  _items_json | jq -r --argjson n "$num" '
+    .data.user.projectV2.items.nodes[]
+    | select(.content.__typename=="Issue" and .content.number==$n)
+    | "#\(.content.number)  \(.content.title)\n" +
+      "  status:   \( [ .fieldValues.nodes[] | select(.field.name=="Status")   | .name ][0] // "—" )\n" +
+      "  size:     \( [ .fieldValues.nodes[] | select(.field.name=="Size")     | .name ][0] // "—" )\n" +
+      "  priority: \( [ .fieldValues.nodes[] | select(.field.name=="Priority") | .name ][0] // "—" )\n" +
+      "  labels:   \( [ .content.labels.nodes[].name ] | join(", ") )"'
+}
+
+# Set a card's Size estimate (just-in-time refinement) without raw GraphQL.
+cmd_size() {
+  local num="$1" size="$2" opt
+  case "$size" in
+    XS) opt="$SIZE_XS" ;; S) opt="$SIZE_S" ;; M) opt="$SIZE_M" ;;
+    L) opt="$SIZE_L" ;; XL) opt="$SIZE_XL" ;;
+    *) die "size must be XS|S|M|L|XL" ;;
+  esac
+  local item_id; item_id="$(_item_id_for "$num")"
+  [ -n "$item_id" ] || die "issue #$num is not on the board"
+  gh api graphql -f query='
+    mutation($p:ID!, $i:ID!, $f:ID!, $o:String!){
+      updateProjectV2ItemFieldValue(input:{projectId:$p, itemId:$i, fieldId:$f, value:{singleSelectOptionId:$o}}){ projectV2Item{ id } }
+    }' -f p="$PROJECT_ID" -f i="$item_id" -f f="$SIZE_FIELD_ID" -f o="$opt" >/dev/null
+  echo "set #$num size = $size"
+}
+
 main() {
   local cmd="${1:-}"; shift || true
   case "$cmd" in
+    preflight) cmd_preflight ;;
     items)     cmd_items ;;
     ready)     cmd_ready ;;
+    card)      cmd_card "$@" ;;
     status)    cmd_status "$@" ;;
     move)      cmd_move "$@" ;;
+    size)      cmd_size "$@" ;;
     comment)   cmd_comment "$@" ;;
     label)     cmd_label "$@" ;;
     fetch-ids) cmd_fetch_ids ;;
     *) cat >&2 <<EOF
 board.sh — Living Artifact board adapter
+  preflight                     check gh/jq/auth/project-scope before a tick
   items                         list all cards
   ready                         list cards in the Ready lane
+  card <n>                      show a card's DoR fields (status/size/priority/labels)
   status <n>                    print a card's lane
   move <n> "<Lane>"             move a card (validated)
+  size <n> <XS|S|M|L|XL>        set a card's size estimate
   comment <n> "<text>"          comment on a card
   label add|remove <n> <label>  manage labels
   fetch-ids                     re-print field/option ids

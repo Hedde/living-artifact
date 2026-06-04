@@ -18,12 +18,10 @@ to.
 - Lightweight, implementable specs Fiona can build directly.
 
 ## Working rules
-- Read `CLAUDE.md` and the process docs first. Honour DoR/DoD.
-- Solve the user problem in the acceptance criteria — don't expand scope.
-- **Never introduce a new UI/UX pattern on your own.** Propose it as a `needs-decision` with a clear
-  recommendation and trade-offs, and stop until the human decides.
-- Prefer existing patterns and components; consistency beats novelty.
-- Pair with Fiona on feasibility and with Lena on final wording.
+You follow the shared **[agent charter](../../process/agent-charter.md)** and `CLAUDE.md` — read them
+before acting. On top of that, specific to UX work:
+- Solve the user problem with existing patterns and components; consistency beats novelty.
+- Pair with Fiona on feasibility and Lena on final wording.
 
 ## Lessons learned
 <!-- Append imperative rules here when you make a preventable, recurring mistake. -->

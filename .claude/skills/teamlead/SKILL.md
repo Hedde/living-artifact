@@ -14,8 +14,9 @@ All board reads/writes go through `tools/board.sh`. Never guess board state.
 
 ## Tick algorithm
 
-### 0. Snapshot
-Run `tools/board.sh items`. This is the truth for this tick. Note WIP per lane (limits:
+### 0. Preflight & snapshot
+Run `tools/board.sh preflight` (bails early with a clear fix if gh/jq/auth/`project` scope is off),
+then `tools/board.sh items`. This is the truth for this tick. Note WIP per lane (limits:
 In progress = 3, In review = 5).
 
 ### 1. Advance review → done (free up flow first)
@@ -29,11 +30,14 @@ For each card in **In review**: check if its linked PR is **merged**.
 ### 2. Pick up new work (Ready → In progress)
 Only if In progress WIP < 3. Take the **highest-priority** card in **Ready** (respect the human's
 Priority/order):
-1. **Re-check DoR** (`process/definition-of-ready.md`). If it fails:
+1. **Re-check DoR** (`process/definition-of-ready.md`). Read the card's fields with
+   `board.sh card <n>`. If the *only* gap is an unset Size on an otherwise-clear card, estimate it
+   just-in-time with `board.sh size <n> <XS|S|M|L|XL>` rather than bouncing. If DoR genuinely fails
+   (unclear, no acceptance criteria, blocked, needs an undecided pattern):
    `board.sh label add <n> needs-refinement`, comment what's missing, `board.sh move <n> "Backlog"`.
    Skip to the next card.
 2. **Select expertise** with the routing heuristic in `process/roles.md`. Decide the minimal set of
-   specialists.
+   specialists — see **Proportionality** below; don't fan out on trivial work.
 3. `board.sh move <n> "In progress"` and comment a short plan + the chosen team, e.g.
    `🏃 Picked up by Morgan. Team: Lena (prose), Quentin (verify). Plan: …`
 4. **Delegate** to the chosen specialist subagents (via the Agent tool) on a feature branch
@@ -65,6 +69,15 @@ the lesson is appended to the responsible agent's `## Lessons learned` (or the r
 ### 6. End the tick
 Print a concise status line per active card (what moved, what's blocked on the human, what's next).
 Then stop and wait for the next `/loop` tick. Do not busy-wait.
+
+## Proportionality (don't over-orchestrate)
+Match the ceremony to the card. Spawning a specialist subagent costs time and tokens — spend it only
+when the expertise is genuinely needed.
+- **Trivial / XS, single-domain** (e.g. a one-line doc edit): do it directly, or with **one**
+  specialist, and self-verify. Don't spin up a separate verifier for a `grep`-able criterion.
+- **Multi-domain or non-trivial**: fan out to the specialists each domain needs, then verify.
+- Always state the team you chose (and why it's small) in the pick-up comment, so the choice is
+  auditable. When unsure, prefer fewer agents and escalate if it turns out to need more.
 
 ## Hard limits (never cross)
 - The human gates **Backlog → Ready** and **all merges**. You never do these.

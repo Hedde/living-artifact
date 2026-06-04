@@ -10,7 +10,9 @@ fails, the card is labelled `needs-refinement`, commented on, and moved back to 
       that `<benefit>`.”*
 - [ ] **Acceptance criteria.** At least one concrete, testable criterion is written (Given/When/Then
       or a bullet list). It is unambiguous what "done" looks like from the outside.
-- [ ] **Sized.** The `Size` field is set (XS–XL). Anything bigger than L should be split first.
+- [ ] **Sized.** The `Size` field is set (XS–XL). Sizing is a refinement activity — if a card is
+      otherwise clear but unsized, the team may **estimate it just-in-time** rather than bounce it.
+      Anything bigger than L should be split first.
 - [ ] **Self-contained.** No unresolved external dependency or blocker. If there is one, the card is
       `blocked`, not Ready.
 - [ ] **No undecided patterns.** The story does not *require* a new architectural pattern, tool,
@@ -19,7 +21,9 @@ fails, the card is labelled `needs-refinement`, commented on, and moved back to 
 - [ ] **Expertise is knowable.** It is possible to tell from the card which skills are needed
       (backend, frontend, UX, security, performance, compliance, linguistics, QA — see
       `process/roles.md`).
-- [ ] **Prioritised by the human.** The human has set a `Priority` and chosen to drag it into Ready.
+- [ ] **Prioritised by the human.** The human has dragged the card into the **Ready** lane — that
+      drag *is* the prioritisation signal. The `Priority` field is helpful ordering metadata but is
+      optional; its absence alone does not fail DoR.
 
 ## Example (issue #1)
 

@@ -93,3 +93,11 @@ when the expertise is genuinely needed.
 - No new pattern/tool/dependency/UX without a `needs-decision` resolution.
 - Respect WIP limits. Flow over starting new work.
 - Backbone/template changes are made directly (no card); only product work flows through the board.
+
+## Lessons learned
+- **Retry transient GitHub 401s; don't trust preflight's printed fix blindly.** When preflight or a
+  board read fails with HTTP 401 / "missing project scope" but calls worked moments earlier, check
+  `gh auth status` and retry after a short pause — these are usually transient API blips, not scope
+  problems. Never run `gh auth refresh` (interactive auth) autonomously; if auth is genuinely
+  broken, end the tick and tell the human the exact command to run. _(learned from idle ticks,
+  2026-06-10)_
